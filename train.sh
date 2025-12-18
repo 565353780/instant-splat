@@ -1,6 +1,6 @@
-SOURCE_PATH=$HOME/chLi/Dataset/GS/haizei_1/input_sparse/
-MODEL_PATH=$HOME/chLi/Dataset/GS/haizei_1/instant-splat_sparse/
-N_VIEW=5
+SOURCE_PATH=$HOME/chLi/Dataset/GS/haizei_1/input_dense/
+MODEL_PATH=$HOME/chLi/Dataset/GS/haizei_1/instant-splat_2dgs/
+N_VIEW=98
 GPU_ID=7
 
 gs_train_iter=1000
@@ -27,11 +27,13 @@ CUDA_VISIBLE_DEVICES=${GPU_ID} python ./train.py \
   -r 1 \
   --n_views ${N_VIEW} \
   --iterations ${gs_train_iter} \
-  --pp_optimizer \
-  --optim_pose
+  --optim_pose \
+  --depth_ratio 0 \
+  --lambda_dist 100 \
+  --pp_optimizer
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] Training completed."
 
-# (3) Render-Video
+# (3) Render-Training_View
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] Starting rendering training views..."
 CUDA_VISIBLE_DEVICES=${GPU_ID} python ./render.py \
   -s ${SOURCE_PATH} \
@@ -39,9 +41,10 @@ CUDA_VISIBLE_DEVICES=${GPU_ID} python ./render.py \
   -r 1 \
   --n_views ${N_VIEW} \
   --iterations ${gs_train_iter} \
-  --infer_video
+  --depth_ratio 0 \
+  --num_cluster 50 \
+  --mesh_res 2048 \
+  --depth_trunc 6.0
+# --voxel_size 0.004 \
+# --sdf_trunc 0.016 \
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] Rendering completed."
-
-echo "======================================================="
-echo "Task completed: (${N_VIEW} views/${gs_train_iter} iters) on GPU ${GPU_ID}"
-echo "======================================================="

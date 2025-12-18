@@ -13,7 +13,7 @@ pip install huggingface-hub[torch] >=0.22
 cd submodules/simple-knn
 python setup.py install
 
-cd ../diff-gaussian-rasterization
+cd ../diff-surfel-rasterization
 python setup.py install
 
 cd ../fused-ssim
