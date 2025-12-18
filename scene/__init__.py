@@ -12,19 +12,17 @@
 import os
 import random
 import json
-import numpy as np
 from utils.system_utils import searchForMaxIteration
 from scene.dataset_readers import sceneLoadTypeCallbacks
 from scene.gaussian_model import GaussianModel
 from arguments import ModelParams
 from utils.camera_utils import cameraList_from_camInfos, camera_to_JSON
-from utils.graphics_utils import compute_scale_gaussian_by_project_pair_pcd, fov2focal
 
 class Scene:
 
     gaussians : GaussianModel
 
-    def __init__(self, args : ModelParams, gaussians : GaussianModel, load_iteration=None, opt=None, shuffle=True, resolution_scales=[1.0]):
+    def __init__(self, args : ModelParams, gaussians : GaussianModel, load_iteration=None, shuffle=True, resolution_scales=[1.0]):
         """b
         :param path: Path to colmap scene main folder.
         """
@@ -73,27 +71,17 @@ class Scene:
         for resolution_scale in resolution_scales:
             print("Loading Training Cameras")
             self.train_cameras[resolution_scale] = cameraList_from_camInfos(scene_info.train_cameras, resolution_scale, args)
-            print('train_camera_num: ', len(self.train_cameras[resolution_scale]))
             print("Loading Test Cameras")
             self.test_cameras[resolution_scale] = cameraList_from_camInfos(scene_info.test_cameras, resolution_scale, args)
-            print('test_camera_num: ', len(self.test_cameras[resolution_scale]))
-
+        
         if self.loaded_iter:
             self.gaussians.load_ply(os.path.join(self.model_path,
                                                            "point_cloud",
                                                            "iteration_" + str(self.loaded_iter),
                                                            "point_cloud.ply"))
         else:
-            scale_gaussian = None
-            if args.init_scale_from_view_depth:
-                scale_gaussian = compute_scale_gaussian_by_project_pair_pcd(
-                    scene_info.point_cloud.points,
-                    np.linalg.inv(scene_info.train_poses),
-                    [[fov2focal(i.FovX, i.width), fov2focal(i.FovY, i.height)] for i in scene_info.train_cameras],
-                )
-            self.gaussians.create_from_pcd(scene_info.point_cloud, self.cameras_extent, scale_gaussian)
+            self.gaussians.create_from_pcd(scene_info.point_cloud, self.cameras_extent)
             self.gaussians.init_RT_seq(self.train_cameras)
-            # self.gaussians.init_exposure_seq(self.train_cameras)
 
     def save(self, iteration):
         point_cloud_path = os.path.join(self.model_path, "point_cloud/iteration_{}".format(iteration))

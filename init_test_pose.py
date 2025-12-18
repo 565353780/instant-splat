@@ -56,9 +56,7 @@ def main(source_path, model_path, ckpt_path, device, batch_size, image_size, sch
         
     print(f'>> Global alignment...')
     scene = global_aligner(output, device=args.device, mode=GlobalAlignerMode.PointCloudOptimizer)
-    loss = scene.compute_global_alignment(init="mst", niter=500, schedule=schedule, lr=lr, focal_avg=args.focal_avg, known_focal=preset_focal)    
-    imgs = np.array(scene.imgs)
-    focals = np.repeat(preset_focal, len(test_img_files))
+    loss = scene.compute_global_alignment(init="mst", niter=500, schedule=schedule, lr=lr, focal_avg=args.focal_avg, known_focal=preset_focal)
 
     all_poses = to_numpy(scene.get_im_poses())
     all_pts3d = to_numpy(scene.get_pts3d())
@@ -67,7 +65,7 @@ def main(source_path, model_path, ckpt_path, device, batch_size, image_size, sch
     train_pts3d_n1 = np.array(to_numpy(train_pts3d_n1)).reshape(-1,3)
     test_poses_n1  = np.array(to_numpy(test_poses_n1))              # test_pose_n1: c2w
 
-    #---------------- (4) Applying pointcloud registration & Calculate transform_matrix & Save initial_test_pose---------------- 
+    #---------------- (4) Applying pointcloud registration & Calculate transform_matrix & Save initial_test_pose---------------- ##########
     # compute transform that goes from cam to world
     train_pts3d_n1 = torch.from_numpy(train_pts3d_n1)
     train_pts3d_m1 = torch.from_numpy(train_pts3d_m1)
@@ -87,7 +85,6 @@ def main(source_path, model_path, ckpt_path, device, batch_size, image_size, sch
     print(f"Time taken for {n_views} views: {Train_Time} seconds")
     save_time(model_path, '[3] init_test_pose', Train_Time)
     save_extrinsic(sparse_1_path, inv(test_poses_m1), test_img_files, image_suffix)
-    save_intrinsics(sparse_1_path, focals, org_imgs_shape, imgs.shape, save_focals=False)
     print(f'[INFO] MASt3R Reconstruction is successfully converted to COLMAP files in: {str(sparse_1_path)}')
 
 
